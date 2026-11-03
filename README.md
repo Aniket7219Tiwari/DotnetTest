@@ -157,7 +157,6 @@ Pending orders older than 30 minutes are checked once per minute by a hosted ser
 - Discount assumption: the 5% high-subtotal discount and the fifth-order 10% discount are additive percentage points (15% when both apply), rounded to two decimal places. The fifth-order count includes every previously placed order, including cancelled orders.
 - Customer-created registrations always receive the Customer role. Admins can transition Pending → Confirmed → Shipped or Pending/Confirmed → Cancelled. Customers can only cancel their own Pending orders.
 - Enum values in SQL are integers: Pending=0, Confirmed=1, Shipped=2, Cancelled=3.
-- Part C cannot be completed yet: the prompt provided no code sample to review. See [REVIEW.md](./REVIEW.md).
 
 ## Tests
 
