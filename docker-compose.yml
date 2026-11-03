@@ -1,0 +1,47 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD:?Copy .env.example to .env and set SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    volumes:
+      - store-sql-data:/var/opt/mssql
+
+  api:
+    build:
+      context: ./Store.Api
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Store: Server=sqlserver,1433;Database=StoreDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;Encrypt=False
+      Jwt__Key: ${JWT_KEY:?Set JWT_KEY in .env}
+      Jwt__Issuer: Store.Api
+      Jwt__Audience: Store.Frontend
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:?Set SEED_ADMIN_PASSWORD in .env}
+      Seed__CustomerPassword: ${SEED_CUSTOMER_PASSWORD:?Set SEED_CUSTOMER_PASSWORD in .env}
+      Frontend__Origin: http://localhost:8081
+    ports:
+      - "5000:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:5000
+    ports:
+      - "8081:80"
+    depends_on:
+      - api
+
+volumes:
+  store-sql-data:
